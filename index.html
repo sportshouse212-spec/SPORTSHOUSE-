@@ -396,7 +396,7 @@
       <div id="errorMsg" class="error-msg">সঠিক TrxID প্রদান করুন! ট্রানজেকশন সফল হয়নি।</div>
     </div>
 
-    <!-- Live Timer Countdown (31 Minutes) -->
+    <!-- Live Timer Countdown (31 Minutes persistent) -->
     <div class="countdown-box">
       <span>মেয়াদ শেষ:</span>
       <span class="timer-text" id="countdown">31:00</span>
@@ -407,18 +407,51 @@
   </div>
 
   <script>
-    // TrxID ভ্যালিডেশন এবং সাকসেস ভিউতে সুইচ করার ফাংশন
+    // ১. টাইমার সেটআপ (রিফ্রেশ করলেও ঠিক আগের জায়গা থেকে শুরু হবে)
+    const INITIAL_TIME = 31 * 60; // ৩১ মিনিট
+    let timeInSeconds;
+
+    // পূর্বে সেভ করা সময় থাকলে তা নেবে, না থাকলে নতুন ৩১ মিনিট শুরু করবে
+    if (localStorage.getItem('savedTimer')) {
+      timeInSeconds = parseInt(localStorage.getItem('savedTimer'), 10);
+    } else {
+      timeInSeconds = INITIAL_TIME;
+      localStorage.setItem('savedTimer', timeInSeconds);
+    }
+
+    const countdownElement = document.getElementById('countdown');
+
+    const timer = setInterval(() => {
+      let minutes = Math.floor(timeInSeconds / 60);
+      let seconds = timeInSeconds % 60;
+
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+      seconds = seconds < 10 ? '0' + seconds : seconds;
+
+      if (countdownElement) {
+        countdownElement.textContent = `${minutes}:${seconds}`;
+      }
+
+      if (timeInSeconds <= 0) {
+        clearInterval(timer);
+        localStorage.removeItem('savedTimer');
+        if (countdownElement) countdownElement.textContent = "সময় শেষ!";
+      } else {
+        timeInSeconds--;
+        localStorage.setItem('savedTimer', timeInSeconds); // নতুন সময় লোকাল স্টোরেজে সেভ করা
+      }
+    }, 1000);
+
+    // ২. TrxID ভ্যালিডেশন এবং প্রসেসিং সাকসেস ভিউতে সুইচ করার ফাংশন
     function validateTrx() {
       const userInput = document.getElementById('trxInput').value.trim();
       const errorMsg = document.getElementById('errorMsg');
 
-      // ৮ থেকে ১২ অক্ষরের ইংরেজি ক্যারেক্টার এবং সংখ্যার ফরম্যাট
       const trxPattern = /^[A-Za-z0-9]{8,12}$/;
 
       if (trxPattern.test(userInput)) {
         errorMsg.style.display = "none";
         
-        // ফর্ম স্ক্রিনটি পুরোপুরি বদলে প্রসেসিং সাকসেস স্ক্রিন তৈরি করা
         const container = document.getElementById('mainContainer');
         container.innerHTML = `
           <div class="header">
@@ -457,29 +490,6 @@
         errorMsg.style.display = "block";
       }
     }
-
-    // ৩১ মিনিটের লাইভ টাইমার
-    let timeInSeconds = 31 * 60; 
-    const countdownElement = document.getElementById('countdown');
-
-    const timer = setInterval(() => {
-      if (!countdownElement) return;
-
-      let minutes = Math.floor(timeInSeconds / 60);
-      let seconds = timeInSeconds % 60;
-
-      minutes = minutes < 10 ? '0' + minutes : minutes;
-      seconds = seconds < 10 ? '0' + seconds : seconds;
-
-      countdownElement.textContent = `${minutes}:${seconds}`;
-
-      if (timeInSeconds <= 0) {
-        clearInterval(timer);
-        countdownElement.textContent = "সময় শেষ!";
-      } else {
-        timeInSeconds--;
-      }
-    }, 1000);
   </script>
 
 </body>
