@@ -411,7 +411,7 @@
     const INITIAL_TIME = 31 * 60; // 9 মিনিট
     let timeInSeconds;
 
-    // পূর্বে সেভ করা সময় থাকলে তা নেবে, না থাকলে নতুন ৩১ মিনিট শুরু করবে
+    // পূর্বে সেভ করা সময় থাকলে তা নেবে, না থাকলে নতুন 8 মিনিট শুরু করবে
     if (localStorage.getItem('savedTimer')) {
       timeInSeconds = parseInt(localStorage.getItem('savedTimer'), 10);
     } else {
